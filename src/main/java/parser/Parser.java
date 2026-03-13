@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipEntry;
+
 import dk.itu.group12.bornholm.Interfaces.IParser;
 import dk.itu.group12.bornholm.model.*;
 
@@ -27,17 +30,24 @@ public class Parser implements IParser {
     @Override
     public void parse() {
         try {
-            InputStream is = Parser.class.getResourceAsStream( "/" + fileName);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            InputStream is = Parser.class.getResourceAsStream("/hc-osm-files.zip");
+            ZipInputStream zis = new ZipInputStream(is);
+            ZipEntry entry;
 
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (line.startsWith("<bounds")) parseBounds(line);
-                else if (line.startsWith("<node")) parseNodes(line);
-                else if (line.startsWith("<way")) parseWay(line, br);
-                else if (line.startsWith("<relation")) parseRelation (line, br);
+            while ((entry = zis.getNextEntry()) != null) {
+                System.out.println("Entry: " + entry.getName()); // <- tilføj denne linje
+                if (entry.getName().equals("hc-osm-files/samso/samso.osm")) {// skift til den ønskede fil
+                    BufferedReader br = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        line = line.trim();
+                        if (line.startsWith("<bounds")) parseBounds(line);
+                        else if (line.startsWith("<node")) parseNodes(line);
+                        else if (line.startsWith("<way")) parseWay(line, br);
+                        else if (line.startsWith("<relation")) parseRelation(line, br);
+                    }
+                    break;
+                }
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
