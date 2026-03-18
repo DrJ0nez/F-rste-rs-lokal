@@ -1,21 +1,16 @@
 package parser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipEntry;
+import java.util.zip.*;
 
 import dk.itu.group12.bornholm.Interfaces.IParser;
 import dk.itu.group12.bornholm.model.*;
 
-public class Parser implements IParser {
+public class osmParser implements IParser {
 
     private final String fileName;
     private final List<Double> boundingBox = new ArrayList<>();
@@ -23,31 +18,32 @@ public class Parser implements IParser {
     private final HashMap<Long, OsmWay> osmWayMap = new HashMap<>();
     private final HashMap<Long, OsmRelation> osmRelationMap = new HashMap<>();
 
-    public Parser(String filename) {
+    public osmParser(String filename) {
         this.fileName = filename;
     }
 
     @Override
     public void parse() {
         try {
-            InputStream is = Parser.class.getResourceAsStream("/hc-osm-files.zip");
-            ZipInputStream zis = new ZipInputStream(is);
-            ZipEntry entry;
+            File compressedFile = new File("src/main/resources/hc-osm-files.zip");
+            ZipFile zipFile = new ZipFile(compressedFile);
+            /*
+            zipFile.getEntry searches for a specific file path out from the zip files current path
+            EXAMPLE: zipFile has the path (.../hc-osm-files.zip) so zipFile.getEntry() returns the path
+            (.../hc-osm-files.zip/samso.osm)
+             */
 
-            while ((entry = zis.getNextEntry()) != null) {
-                System.out.println("Entry: " + entry.getName()); // <- tilføj denne linje
-                if (entry.getName().equals("hc-osm-files/samso/samso.osm")) {// skift til den ønskede fil
-                    BufferedReader br = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        line = line.trim();
-                        if (line.startsWith("<bounds")) parseBounds(line);
-                        else if (line.startsWith("<node")) parseNodes(line);
-                        else if (line.startsWith("<way")) parseWay(line, br);
-                        else if (line.startsWith("<relation")) parseRelation(line, br);
-                    }
-                    break;
-                }
+            InputStream is = zipFile.getInputStream(zipFile.getEntry("hc-osm-files/" + fileName));
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("<bounds")) parseBounds(line);
+                else if (line.startsWith("<node")) parseNodes(line);
+                else if (line.startsWith("<way")) parseWay(line, br);
+                else if (line.startsWith("<relation")) parseRelation (line, br);
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -119,8 +115,7 @@ public class Parser implements IParser {
 
             if (line.startsWith("<nd")) {
                 long refId = getAttributeLong(line, "ref");
-                OsmNode node = osmNodeMap.get(refId);
-                if (node != null) nodes.add(node);
+                nodes.add(osmNodeMap.get(refId));
             } else if (line.contains("<tag")) {
                 String k = getAttribute(line, "k");
                 String v = getAttribute(line, "v");
