@@ -119,7 +119,8 @@ public class Parser implements IParser {
 
             if (line.startsWith("<nd")) {
                 long refId = getAttributeLong(line, "ref");
-                nodes.add(osmNodeMap.get(refId));
+                OsmNode node = osmNodeMap.get(refId);
+                if (node != null) nodes.add(node);
             } else if (line.contains("<tag")) {
                 String k = getAttribute(line, "k");
                 String v = getAttribute(line, "v");

@@ -1,7 +1,5 @@
 package dk.itu.group12.bornholm.model;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,8 +29,4 @@ public class OsmRelation extends OsmElement {
     public void setTags(HashMap<String, String> tags) {
         this.tags = tags;
     }
-
-    @Override
-    public void drawForTest(Graphics2D gc, Color color, Integer strokeWidth) {
-        /* Not yet implemented */ }
 }

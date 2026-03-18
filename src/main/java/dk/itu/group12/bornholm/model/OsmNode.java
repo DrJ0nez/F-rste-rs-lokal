@@ -1,8 +1,5 @@
 package dk.itu.group12.bornholm.model;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-
 public class OsmNode extends OsmElement {
 
     private final double lat, lon;
@@ -20,8 +17,4 @@ public class OsmNode extends OsmElement {
     public double getLon() {
         return lon;
     }
-
-    @Override
-    public void drawForTest(Graphics2D gc, Color color, Integer strokeWidth) {
-        /* Not yet implemented */ }
 }
