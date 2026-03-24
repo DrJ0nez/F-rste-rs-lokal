@@ -1,9 +1,11 @@
 package dk.itu.group12.bornholm.controller;
 
 import dk.itu.group12.bornholm.view.MapFunctions;
+import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.Node;
+import javafx.scene.text.Text;
 
 public class MapController {
     private final MapFunctions mapFunctions;
@@ -12,9 +14,14 @@ public class MapController {
     private double lastMouseX;
     private double lastMouseY;
 
+    private Slider zoomSlider;
+    private Text zoomLabel;
+
     public MapController(MapFunctions mapFunctions, Runnable redrawRequest) {
         this.mapFunctions = mapFunctions;
         this.redrawRequest = redrawRequest;
+
+
     }
 
     /**
@@ -47,11 +54,49 @@ public class MapController {
         double delta = event.getDeltaY();
         if (delta == 0) return; // Ignore "ghost" events
 
-        double factor = (delta > 0) ? 1.05 : 1/1.05;
+        double factor = (delta > 0) ? 1.05 : 0.95;
 
-        // Zoom
-        mapFunctions.zoom(factor, event.getX(), event.getY());
+        double currentValue = zoomSlider.getValue();
+        double newValue = currentValue * factor;
+
+        newValue = Math.max(zoomSlider.getMin(), Math.min(zoomSlider.getMax(), newValue));
+
+        double actualFactor = newValue / currentValue;
+
+        mapFunctions.zoom(actualFactor, event.getX(), event.getY());
+        zoomSlider.setValue(newValue);
+        zoomLabel.setText(String.format("Zoom: %.0f%%", newValue * 100));
 
         redrawRequest.run();
+    }
+
+
+    public void sliders(Slider zoomSlider, Text zoomLabel, Slider seaLevelSlider, Text seaLevelLabel) {
+        this.zoomSlider = zoomSlider;
+        this.zoomLabel = zoomLabel;
+
+        //Zoom slider
+        zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(zoomSlider.isValueChanging() || !zoomSlider.isFocused()) {
+                 double factor = newValue.doubleValue() / oldValue.doubleValue();
+                 mapFunctions.zoom(factor, 640, 360);
+
+                 //Zoom label
+                 zoomLabel.setText(String.format("Zoom: %.0f%% ",  newValue.doubleValue() * 100));
+
+                 redrawRequest.run();
+            }
+           
+        });
+        // seaLevelSlider
+        seaLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mapFunctions.updateSeaLevel(newValue.doubleValue());
+
+            //Sea label
+            seaLevelLabel.setText(String.format("Sea Level: %.1fm", newValue.doubleValue()));
+
+            redrawRequest.run();
+        });
+
     }
 }

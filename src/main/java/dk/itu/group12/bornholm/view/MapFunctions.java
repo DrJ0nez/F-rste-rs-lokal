@@ -1,8 +1,10 @@
 package dk.itu.group12.bornholm.view;
 
-public class MapFunctions {
-    private final SuperAffine transform = new SuperAffine();
+import dk.itu.group12.bornholm.model.SeaLevelSimulation;
 
+public class MapFunctions {
+    private static final SuperAffine transform = new SuperAffine();
+    private SeaLevelSimulation seaLevelSimulation;
 
      //Skill 1: Panning
      public void pan(double dx, double dy) {
@@ -30,6 +32,27 @@ public class MapFunctions {
 
         transform.prependScale(scale, scale);
     }
+
+
+    //Skill 4: Slider for SeaLevel
+    public void setSeaLevelSimulation(SeaLevelSimulation seaLevelSimulation) {
+        this.seaLevelSimulation = seaLevelSimulation;
+    }
+
+    public void updateSeaLevel(double meters) {
+        if (seaLevelSimulation != null) {
+            seaLevelSimulation.setSeaLevel(meters); // Calling your existing method!
+        }
+    }
+
+    //Skill 5: Scalebar logic
+    public static double getPixelsPerKM() {
+         double currentScale = transform.getScaleX();
+         double metersPerPixel = 1 / (currentScale / (111320 * 0.56));
+        return 1000 / metersPerPixel;
+    }
+
+
 
     public SuperAffine getTransform() {
         return transform;
